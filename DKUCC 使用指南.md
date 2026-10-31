@@ -10,13 +10,11 @@ status: published
 
 [English](DKUCC%20User%20Guide.md) · [仓库说明](README.md)
 
-本文介绍 DKUCC 的账号申请、SSH 登录、目录规划、Slurm 作业及数据保留。账号与 GPU 权限依据 2026 年 10 月 23 日的 DKU IT 通知及其附件《DKU Research GPU management》（2026 年 10 月 16 日版）更新。**新账号转换及科研使用计费将于 2026 年 12 月 1 日实施**，详见 Section 1 和 Section 5。
-
-**本版核对日期：2026 年 10 月 31 日。**文中的命令输出、节点状态和软件版本含历史示例，不代表集群当前状态；请以当前官方通知及本人账号的实际配置为准。
+以下内容主要包括 DKUCC 的账号申请、SSH 登录、目录规划、Slurm 作业及数据保留。账号与 GPU 权限依据 2026 年 10 月 23 日的 DKU IT 通知及其附件 DKU Research GPU management 进行了相关说明的更新。**新账号转换及科研使用计费将于 2026 年 12 月 1 日实施**，详见 Section 1 和 Section 5。
 
 ## 问题反馈
 
-网络、DKU VPN 或其他 DKU 账号问题，请联系 [service-desk@dukekunshan.edu.cn](mailto:service-desk@dukekunshan.edu.cn) 提交工单。DKUCC 学习／科研账号的申请方式见 Section 1。
+网络、DKU VPN 或其他 DKU 账号问题，请联系 [service-desk@dukekunshan.edu.cn](mailto:service-desk@dukekunshan.edu.cn) 提交工单，可以加本人微信：18851063808，把你拉进 DKUCC 问题反馈群，这样遇到问题比邮件反馈时效性高一些。
 
 ## 目录
 
@@ -33,16 +31,16 @@ status: published
 
 <a id="section-0"></a>
 
-## 「Section 0」使用要点速查
+## 「Section 0」要点速查
 
-1. SSH 初次进入的是登录节点。不要在 `dkucc-login-01` 直接运行 GPU 任务或需要大量 CPU 的计算任务。
+1. SSH 初次进入的是登录节点，**不要在 `dkucc-login-01` 直接运行 GPU 任务或需要大量 CPU 的计算任务**。
 2. 大型计算任务应通过 Slurm 提交到计算节点，具体操作见 Section 5 和 Section 6。
 3. 登录后的目录通常是 `/dkucc/home/<NETID>`，建议存放代码、配置等小文件。大量数据、checkpoint 和输出产物应放到 `/work/<NETID>`。
-4. 原指南记录的 `/work` 清理规则为：每半个月清理时间戳旧于 75 天的文件。当前执行规则应向 IT 确认，重要数据须另行备份；Section 7 的时间戳脚本仅在管理员允许时使用。
-5. 不要绕过 Slurm，直接 SSH 到计算节点占用 GPU 或运行训练。GPU 进程必须归属于获批作业。
+4. 原指南记录的 `/work` 清理规则为：每半个月清理时间戳旧于 75 天的文件。
+5. 不要绕过 Slurm，直接 SSH 到计算节点占用 GPU 或运行训练。
 6. 初次使用可先提交普通作业。原指南记录过 array job 的作业 ID 与子任务 ID 排查困难；使用数组作业时，应结合 `sacct` 和 `SLURM_JOB_ID` 等信息定位，这不是账号政策对数组作业的禁令。
-7. 作业结束后应释放所申请的资源，不要依赖残余进程继续运行；原指南曾观察到 `COMPLETED` 后残余进程被清理。
-8. 学习账号与科研账号的 GPU 数量、月运行时间和可用分区不同。**两类账号均最多同时运行 1 个作业**，但不能据此理解为“最多只能提交 1 个作业”；详见 Section 5。
+7. 作业结束后应释放所申请的资源，不要依赖残余进程继续运行；任务 `COMPLETED` 后，就算开 screen 或者 tmux 对应申请的 GPU 节点也很快会被回收。
+8. 学习账号与科研账号的 GPU 数量、月运行时间和可用分区不同。**两类账号均最多同时运行 1 个作业**，详见 Section 5。
 
 ---
 
