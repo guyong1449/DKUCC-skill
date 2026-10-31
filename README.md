@@ -1,189 +1,92 @@
-# DKUCC Skill Collection
+# DKUCC 使用指南与 Skills
 
-**简体中文** | [English](#english)
+**简体中文** | [English](README.en.md)
 
-面向 Duke Kunshan University Compute Cluster（DKUCC）的运维型 Skill 集合。将常见的集群存储维护、数据恢复和 NFSv4 权限操作拆成独立 Skill，并附带可直接执行的 Shell 工具、参考文档以及 DKUCC 官网的离线页面资料。
+DKUCC（Duke Kunshan University Compute Cluster）是昆山杜克大学的计算集群。你可以从自己的电脑连接集群，通过 Slurm 申请计算资源并运行任务。
 
+本仓库提供一份面向使用者的入门指南，以及按需使用的存储、数据恢复和权限管理 Skills。
 
-## Repository Structure
+## 从使用指南开始
 
-```text
-.
-├── dkucc-data-ingest/          # /work 文件保活与容量检查
-├── dkucc-data-recovery/        # NFS 快照数据恢复与故障取证
-├── dkucc-permission-audit/     # home/work 默认权限只读审计
-├── nfs4-acl/                   # /work NFSv4 ACL 授权与修复
-└── dkucc.dukekunshan.edu.cn/   # DKUCC 官网离线资料镜像
-```
+**第一次使用 DKUCC，请先阅读 [《DKUCC 使用指南》](DKUCC%20使用指南.md)。**
 
-## Skill Directories
+建议按这个顺序阅读：
 
-### `dkucc-data-ingest/`
+1. **先读指南**：了解账号与官方入口、Windows / macOS 的 SSH 配置、目录规划，以及登录节点和计算节点的分工。
+2. **准备提交任务时**：阅读指南中的 Slurm 与 GPU 章节，确认自己的账号类型、可用分区、资源限制和计费安排。
+3. **遇到具体维护需求时**：再从下面选择对应的 Skill，阅读其 `SKILL.md` 和相关参考资料后操作。
 
-用于预防 `/work/<NETID>` 中长期未更新的数据被清理，并检查存储使用情况。
+指南可以直接阅读，不需要安装任何 Skill。Skills 则把特定任务整理为可供 Agent 参考的流程，并附上供人工检查和使用的脚本。安装或加载 Skill 不等于授权执行其中的命令，也不代表所有操作都适合当前账号或环境。
 
-* `SKILL.md`：定义 `/work` 保活和定期检查流程。
-* `scripts/touch_work_timestamps.sh`：遍历当前用户 `/work` 下的文件并刷新时间戳，同时写入日志。
-* `scripts/monthly_check.sh`：输出 `df`、`du` 结果，并检查最近的 touch/cron 日志。
+## 按任务选择 Skill
 
-### `dkucc-data-recovery/`
+| 你要做什么 | 阅读入口 | 操作边界 |
+| --- | --- | --- |
+| 检查 `/work` 空间与文件时间戳 | [`dkucc-data-ingest`](dkucc-data-ingest/SKILL.md) | 空间检查不修改业务文件；时间戳维护脚本会修改文件时间戳 |
+| 排查文件丢失、查找快照或恢复数据 | [`dkucc-data-recovery`](dkucc-data-recovery/SKILL.md) | 先诊断、对比；执行恢复会向目标目录写入数据，恢复后可另行刷新时间戳 |
+| 检查 home / work 的默认权限与继承效果 | [`dkucc-permission-audit`](dkucc-permission-audit/SKILL.md) | 会创建并删除临时探针，不是纯只读；不负责修改现有 ACL |
+| 给协作者授权或修复 NFSv4 ACL | [`nfs4-acl`](nfs4-acl/SKILL.md) | 会修改权限；中文操作说明见 [`reference-zh.md`](nfs4-acl/reference-zh.md) |
 
-用于 `/work/<NETID>` 或 `/dkucc/home/<NETID>` 数据丢失后的诊断、NFS `.snapshot` 对比、恢复和证据收集。
-
-* `SKILL.md`：定义"确认丢失 → 查找快照 → 对比快照 → `rsync` 恢复 → 校验 → touch → 必要时提交 IT 证据"的完整流程。
-* `agents/`：面向 OpenAI agent 的 Skill 展示信息和默认任务提示。
-* `references/`：人工阅读用 SOP 与 IT 工单模板。
-* `scripts/`：恢复流程的可执行工具：
-
-  * `common.sh`：统一解析 `/work`、`/dkucc/home` 与 `.snapshot` 路径。
-  * `check-live-path.sh`：检查当前路径是否缺失、异常变小或被清空。
-  * `list-snapshots.sh`：列出当前存储卷可见的 NFS 快照。
-  * `compare-snapshots.sh`：比较两个时间点快照中的目标目录。
-  * `restore-from-snapshot.sh`：使用 `rsync` 将指定快照恢复到 live 路径，支持 dry-run。
-  * `scan-bash-history.sh`：检查 shell 历史中是否存在针对目标路径的删除命令，作为辅助取证。
-  * `print-it-evidence.sh`：汇总身份、挂载、目录状态、快照和历史记录等 IT 工单证据。
-  * `touch-after-restore.sh`：恢复后统计文件并刷新文件时间戳。
-
-### `dkucc-permission-audit/`
-
-用于只读审计 DKUCC 用户在 `/dkucc/home` 和 `/work` 上的自然权限，重点区分 POSIX mode 与 NFSv4 ACL 的实际效果。
-
-* `SKILL.md`：定义身份、umask、挂载、ACL 和新建文件权限探针的审计流程。
-* `agents/`：OpenAI agent 的展示信息和默认审计提示。
-* `references/interpretation.md`：解释 NFSv4 ACE、常见权限模式、异常信号及审计结论。
-* `scripts/audit-natural-perms.sh`：采集 home/work 的 POSIX 与 NFSv4 ACL，并通过临时文件验证继承后的实际权限。
-
-该模块原则上只负责检查，不负责直接修改 ACL。
-
-### `nfs4-acl/`
-
-用于 DKUCC `/work` 的 NFSv4 ACL 修改，包括协作者授权、继承权限配置以及 `070` 权限异常修复。
-
-* `SKILL.md`：英文主流程，包含 ACL 模型、ACE 权限位、授权步骤、验证方式和故障修复方案。
-* `reference-zh.md`：对应的中文操作参考。
-
-该目录负责权限变更；自然权限检查由 `dkucc-permission-audit/` 负责。
-
-
-## File Organization Convention
-
-各 Skill 基本遵循以下组织方式：
-
-```text
-<skill>/
-├── SKILL.md        # Agent 使用的任务定义、边界和操作流程
-├── scripts/        # 可直接在 DKUCC 上执行的 Shell 工具（如存在）
-├── references/     # 补充说明、SOP 或输出解释（如存在）
-└── agents/         # Agent 平台展示/默认提示配置（如存在）
-```
-
-四个 Skill 的职责边界如下：
-
-| Skill                    | 主要职责              | 是否修改数据/权限       |
-| ------------------------ | -------------------- | --------------------- |
-| `dkucc-data-ingest`      | `/work` 保活、空间检查  | 会刷新文件时间戳         |
-| `dkucc-data-recovery`    | 快照诊断与数据恢复       | 会在明确恢复时写入数据     |
-| `dkucc-permission-audit` | 默认权限审计           | 默认只读，仅创建并删除探针文件 |
-| `nfs4-acl`               | NFSv4 ACL 授权与修复   | 会修改 ACL            |
-
-## DKUCC Offline Documentation
-
-### `dkucc.dukekunshan.edu.cn/`
-
-DKUCC 官方网站页面的本地保存副本，用作集群使用说明和背景资料。各子目录按网站主题划分：
-
----
-
-# English
-
-[简体中文](#dkucc-skill-collection) | **English**
-
-An operations-oriented collection of Skills for the Duke Kunshan University Compute Cluster (DKUCC). Common cluster storage maintenance, data recovery, and NFSv4 permission operations are decomposed into standalone Skills, each accompanied by directly executable Shell utilities, reference documentation, and offline copies of DKUCC official website pages.
-
-
-## Repository Structure
+## 仓库结构
 
 ```text
 .
-├── dkucc-data-ingest/          # /work file keep-alive and capacity check
-├── dkucc-data-recovery/        # NFS snapshot data recovery and failure forensics
-├── dkucc-permission-audit/     # Read-only audit of default home/work permissions
-├── nfs4-acl/                   # /work NFSv4 ACL authorization and repair
-└── dkucc.dukekunshan.edu.cn/   # Offline mirror of the DKUCC official website
+├── README.md                     # 中文入口
+├── README.en.md                  # English entry point
+├── DKUCC 使用指南.md             # 中文使用指南，建议先读
+├── DKUCC User Guide.md           # English user guide
+├── DKUCC 使用指南.assets/        # 指南配图
+├── dkucc-data-ingest/             # /work 空间检查与时间戳维护
+├── dkucc-data-recovery/           # NFS 快照诊断、恢复与证据收集
+├── dkucc-permission-audit/        # home / work 权限检查
+├── nfs4-acl/                     # NFSv4 ACL 授权与修复
+└── dkucc.dukekunshan.edu.cn/      # 官方网站页面的历史离线副本
 ```
 
-## Skill Directories
+各 Skill 的 `SKILL.md` 说明任务范围和操作流程；`scripts/` 存放 Shell 工具，`references/` 存放补充说明、SOP 或工单模板，`agents/` 存放 Agent 的展示信息和默认提示。这些子目录并非每个 Skill 都有。
 
-### `dkucc-data-ingest/`
+## 脚本与参考资料
 
-Prevents data under `/work/<NETID>` that has not been updated for a long time from being cleaned up, and checks storage usage.
+### `/work` 检查与时间戳维护
 
-* `SKILL.md`: Defines the `/work` keep-alive and periodic check workflow.
-* `scripts/touch_work_timestamps.sh`: Traverses the current user's files under `/work`, refreshes their timestamps, and writes a log.
-* `scripts/monthly_check.sh`: Outputs the results of `df` and `du`, and checks the most recent touch/cron logs.
+[`dkucc-data-ingest/`](dkucc-data-ingest/) 中的两个脚本分别负责：
 
-### `dkucc-data-recovery/`
+- `scripts/monthly_check.sh`：查看 `df`、`du` 结果，以及最近的 touch / cron 日志。
+- `scripts/touch_work_timestamps.sh`：遍历当前用户 `/work` 下的文件，刷新时间戳并写入日志。
 
-Covers diagnosis, NFS `.snapshot` comparison, recovery, and evidence collection after data loss under `/work/<NETID>` or `/dkucc/home/<NETID>`.
+使用时间戳维护脚本前，先确认当前存储保留规则和允许的维护方式。刷新时间戳不能替代备份，也不保证数据不会被清理；不要直接把脚本加入定时任务而不检查作用路径和执行范围。
 
-* `SKILL.md`: Defines the complete workflow "confirm loss → locate snapshots → compare snapshots → recover with `rsync` → verify → touch → submit IT evidence if necessary".
-* `agents/`: Skill showcase information and default task prompts for OpenAI agents.
-* `references/`: Human-readable SOPs and IT ticket templates.
-* `scripts/`: Executable utilities for the recovery workflow:
+### 数据丢失与快照恢复
 
-  * `common.sh`: Uniformly resolves `/work`, `/dkucc/home`, and `.snapshot` paths.
-  * `check-live-path.sh`: Checks whether the current path is missing, abnormally shrunk, or emptied.
-  * `list-snapshots.sh`: Lists the NFS snapshots visible on the current storage volume.
-  * `compare-snapshots.sh`: Compares the target directory across snapshots at two points in time.
-  * `restore-from-snapshot.sh`: Restores a specified snapshot to the live path with `rsync`, supporting dry-run.
-  * `scan-bash-history.sh`: Checks shell history for deletion commands targeting the path in question, as supplementary forensics.
-  * `print-it-evidence.sh`: Aggregates identity, mount, directory status, snapshot, and history evidence for IT tickets.
-  * `touch-after-restore.sh`: Counts files after restoration and refreshes file timestamps.
+[`dkucc-data-recovery/`](dkucc-data-recovery/) 面向 `/work/<NETID>` 和 `/dkucc/home/<NETID>`。先确认文件是否丢失，再检查可见快照、比较内容，确定恢复目标后再写入数据。`references/` 中提供人工操作 SOP 和 IT 工单模板。
 
-### `dkucc-permission-audit/`
+| 脚本 | 用途 |
+| --- | --- |
+| `scripts/common.sh` | 统一处理 `/work`、`/dkucc/home` 与 `.snapshot` 路径 |
+| `scripts/check-live-path.sh` | 检查当前目录是否缺失、异常变小或被清空 |
+| `scripts/list-snapshots.sh` | 列出当前存储卷上可见的 NFS 快照 |
+| `scripts/compare-snapshots.sh` | 比较两个时间点的快照目录 |
+| `scripts/restore-from-snapshot.sh` | 用 `rsync` 恢复到当前目录，支持 dry-run 预览 |
+| `scripts/scan-bash-history.sh` | 查找与目标路径有关的删除命令，作为辅助排查线索 |
+| `scripts/print-it-evidence.sh` | 汇总身份、挂载、目录、快照和历史记录等工单证据 |
+| `scripts/touch-after-restore.sh` | 统计恢复后的文件并刷新时间戳 |
 
-Performs read-only audits of DKUCC users' natural permissions on `/dkucc/home` and `/work`, with emphasis on distinguishing the actual effects of POSIX modes from those of NFSv4 ACLs.
+快照是否存在、能保留多久，以实际存储状态为准；快照不是长期备份。恢复前应检查 dry-run 输出，确认源快照、目标目录和可能覆盖的内容。分享工单证据前，先检查是否包含敏感路径、命令或其他不宜公开的信息。
 
-* `SKILL.md`: Defines the audit workflow covering identity, umask, mount, ACLs, and new-file permission probes.
-* `agents/`: Showcase information and default audit prompts for OpenAI agents.
-* `references/interpretation.md`: Explains NFSv4 ACEs, common permission patterns, anomalous signals, and audit conclusions.
-* `scripts/audit-natural-perms.sh`: Collects the POSIX and NFSv4 ACLs of home/work, and verifies the inherited effective permissions with temporary files.
+### 权限检查与变更
 
-In principle, this module is responsible only for inspection, not for directly modifying ACLs.
+- [`dkucc-permission-audit/`](dkucc-permission-audit/) 的 `scripts/audit-natural-perms.sh` 采集身份、umask、挂载、POSIX mode 和 NFSv4 ACL，并在审计当前用户时，用临时文件验证权限继承。结果解释见 [`references/interpretation.md`](dkucc-permission-audit/references/interpretation.md)。
+- [`nfs4-acl/`](nfs4-acl/) 处理协作者授权、继承权限和 `070` 等异常。先确认现有 ACL 和目标访问范围，再按流程修改并验证；不要只根据 `ls -l` 的显示判断 NFSv4 权限。
 
-### `nfs4-acl/`
+## 使用前的几个提醒
 
-Modifies NFSv4 ACLs on DKUCC `/work`, including collaborator authorization, inherited-permission configuration, and repair of the `070` permission anomaly.
+- 登录节点用于登录、编辑、传输和提交任务。大型 CPU / GPU 计算应通过 Slurm 在计算节点上运行。
+- 先核对当前账号、路径和资源限制，再执行命令。恢复、时间戳刷新和 ACL 修改都可能改变现有状态。
+- 让 Agent 协助时，应明确目标路径、允许的操作和需要确认的步骤；优先检查与预览，再执行写入或权限变更。
+- 重要数据请另行备份，不要依赖 `/work` 的保留时间、时间戳刷新或短期快照。
 
-* `SKILL.md`: Main workflow in English, covering the ACL model, ACE permission bits, authorization steps, verification methods, and troubleshooting plans.
-* `reference-zh.md`: The corresponding Chinese operations reference.
+## 政策来源与更新范围
 
-This directory handles permission changes; natural-permission inspection is handled by `dkucc-permission-audit/`.
+指南中的 GPU 账号、资源限制和计费说明依据 DKU IT 的 **《DKU Research GPU management》（2026-10-16）**，并结合 **2026-10-23 的通知邮件**整理。该通知将研究账号计费及账号切换的开始时间定为 **2026-12-01**。具体规则、过渡安排和申请方式请阅读指南，而不要仅凭旧截图或示例提交任务。
 
-
-## File Organization Convention
-
-Each Skill generally follows the layout below:
-
-```text
-<skill>/
-├── SKILL.md        # Task definition, boundaries, and workflow for agent use
-├── scripts/        # Shell utilities directly executable on DKUCC (if any)
-├── references/     # Supplementary notes, SOPs, or output interpretation (if any)
-└── agents/         # Agent platform showcase/default prompt configuration (if any)
-```
-
-The responsibility boundaries of the four Skills are as follows:
-
-| Skill                    | Primary responsibility              | Modifies data/permissions?        |
-| ------------------------ | ----------------------------------- | --------------------------------- |
-| `dkucc-data-ingest`      | `/work` keep-alive, space check     | Refreshes file timestamps         |
-| `dkucc-data-recovery`    | Snapshot diagnosis and data recovery | Writes data during explicit recovery |
-| `dkucc-permission-audit` | Default permission audit            | Read-only by default; creates and deletes probe files only |
-| `nfs4-acl`               | NFSv4 ACL authorization and repair  | Modifies ACLs                     |
-
-## DKUCC Offline Documentation
-
-### `dkucc.dukekunshan.edu.cn/`
-
-Local saved copies of pages from the DKUCC official website, used as cluster usage instructions and background material. Subdirectories are organized by website topic:
+本仓库是使用参考，不替代学校的正式政策。[DKUCC 官方网站](https://dkucc.dukekunshan.edu.cn/)、DKU IT 的最新通知和实际账号配置应优先于仓库中的旧说明。`dkucc.dukekunshan.edu.cn/` 保存的是官网页面的历史离线副本，可用于查阅背景，但不保证反映当前分区、额度、价格或存储规则。
