@@ -19,7 +19,7 @@ DKUCC（Duke Kunshan University Compute Cluster）是昆山杜克大学的计算
 
 ## 按任务选择 Skill
 
-| 目的 | 阅读入口 | 操作边界 |
+| 功能 | 入口 | 实现内容 |
 | --- | --- | --- |
 | 检查 `/work` 空间与文件时间戳 | [`dkucc-data-ingest`](dkucc-data-ingest/SKILL.md) | 空间检查不修改业务文件；时间戳维护脚本会修改文件时间戳 |
 | 排查文件丢失、查找快照或恢复数据 | [`dkucc-data-recovery`](dkucc-data-recovery/SKILL.md) | 先诊断、对比；执行恢复会向目标目录写入数据，恢复后可另行刷新时间戳 |
