@@ -17,7 +17,7 @@ DKUCC（Duke Kunshan University Compute Cluster）是昆山杜克大学的计算
 3. **遇到具体维护需求时**：再从下面选择对应的 Skill，阅读其 `SKILL.md` 和相关参考资料后操作。
 
 
-## 按任务选择 Skill
+## 具体 Skill
 
 | 功能 | 入口 | 实现内容 |
 | --- | --- | --- |
@@ -53,7 +53,6 @@ DKUCC（Duke Kunshan University Compute Cluster）是昆山杜克大学的计算
 - `scripts/monthly_check.sh`：查看 `df`、`du` 结果，以及最近的 touch / cron 日志。
 - `scripts/touch_work_timestamps.sh`：遍历当前用户 `/work` 下的文件，刷新时间戳并写入日志。
 
-使用时间戳维护脚本前，先确认当前存储保留规则和允许的维护方式。刷新时间戳不能替代备份，也不保证数据不会被清理；不要直接把脚本加入定时任务而不检查作用路径和执行范围。
 
 ### 数据丢失与快照恢复
 
@@ -75,14 +74,13 @@ DKUCC（Duke Kunshan University Compute Cluster）是昆山杜克大学的计算
 ### 权限检查与变更
 
 - [`dkucc-permission-audit/`](dkucc-permission-audit/) 的 `scripts/audit-natural-perms.sh` 采集身份、umask、挂载、POSIX mode 和 NFSv4 ACL，并在审计当前用户时，用临时文件验证权限继承。结果解释见 [`references/interpretation.md`](dkucc-permission-audit/references/interpretation.md)。
-- [`nfs4-acl/`](nfs4-acl/) 处理协作者授权、继承权限和 `070` 等异常。先确认现有 ACL 和目标访问范围，再按流程修改并验证；不要只根据 `ls -l` 的显示判断 NFSv4 权限。
+- [`nfs4-acl/`](nfs4-acl/) 处理协作者授权、继承权限和 `070` 等异常。先确认现有 ACL 和目标访问范围，再按流程修改并验证；不要只根据 `ls -l` 的显示判断 NFSv4 权限
 
-## 使用前的几个提醒
+## 使用前的提醒
 
 - 登录节点用于登录、编辑、传输和提交任务。大型 CPU / GPU 计算应通过 Slurm 在计算节点上运行。
 - 先核对当前账号、路径和资源限制，再执行命令。恢复、时间戳刷新和 ACL 修改都可能改变现有状态。
 - 让 Agent 协助时，应明确目标路径、允许的操作和需要确认的步骤；优先检查与预览，再执行写入或权限变更。
-- 重要数据请另行备份，不要依赖 `/work` 的保留时间、时间戳刷新或短期快照。
 
 ## 政策来源与更新范围
 
