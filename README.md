@@ -16,11 +16,10 @@ DKUCC（Duke Kunshan University Compute Cluster）是昆山杜克大学的计算
 2. **准备提交任务时**：阅读指南中的 Slurm 与 GPU 章节，确认自己的账号类型、可用分区、资源限制和计费安排。
 3. **遇到具体维护需求时**：再从下面选择对应的 Skill，阅读其 `SKILL.md` 和相关参考资料后操作。
 
-指南可以直接阅读，不需要安装任何 Skill。Skills 则把特定任务整理为可供 Agent 参考的流程，并附上供人工检查和使用的脚本。安装或加载 Skill 不等于授权执行其中的命令，也不代表所有操作都适合当前账号或环境。
 
 ## 按任务选择 Skill
 
-| 你要做什么 | 阅读入口 | 操作边界 |
+| 目的 | 阅读入口 | 操作边界 |
 | --- | --- | --- |
 | 检查 `/work` 空间与文件时间戳 | [`dkucc-data-ingest`](dkucc-data-ingest/SKILL.md) | 空间检查不修改业务文件；时间戳维护脚本会修改文件时间戳 |
 | 排查文件丢失、查找快照或恢复数据 | [`dkucc-data-recovery`](dkucc-data-recovery/SKILL.md) | 先诊断、对比；执行恢复会向目标目录写入数据，恢复后可另行刷新时间戳 |
@@ -87,6 +86,6 @@ DKUCC（Duke Kunshan University Compute Cluster）是昆山杜克大学的计算
 
 ## 政策来源与更新范围
 
-指南中的 GPU 账号、资源限制和计费说明依据 DKU IT 的 **《DKU Research GPU management》（2026-10-16）**，并结合 **2026-10-23 的通知邮件**整理。该通知将研究账号计费及账号切换的开始时间定为 **2026-12-01**。具体规则、过渡安排和申请方式请阅读指南，而不要仅凭旧截图或示例提交任务。
+指南中的 GPU 账号、资源限制和计费说明依据 DKU IT 的 **《DKU Research GPU management》（2026-10-16）**，并结合 **2026-10-23 的通知邮件**整理。研究账号计费及账号切换的开始时间为 **2026-12-01**。具体规则、过渡安排和申请方式请阅读指南。
 
-本仓库是使用参考，不替代学校的正式政策。[DKUCC 官方网站](https://dkucc.dukekunshan.edu.cn/)、DKU IT 的最新通知和实际账号配置应优先于仓库中的旧说明。`dkucc.dukekunshan.edu.cn/` 保存的是官网页面的历史离线副本，可用于查阅背景，但不保证反映当前分区、额度、价格或存储规则。
+本仓库是使用参考，不替代学校的正式政策。[DKUCC 官方网站](https://dkucc.dukekunshan.edu.cn/)、DKU IT 的最新通知和实际账号配置应优先于仓库中的旧说明。`dkucc.dukekunshan.edu.cn/` 保存的是官网页面的历史离线副本，可用于查阅背景。
