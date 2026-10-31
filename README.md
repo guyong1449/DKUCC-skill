@@ -2,20 +2,24 @@
 
 **简体中文** | [English](README.en.md)
 
-DKUCC（Duke Kunshan University Compute Cluster）是昆山杜克大学的计算集群。你可以从自己的电脑连接集群，通过 Slurm 申请计算资源并运行任务。
+DKUCC（Duke Kunshan University Compute Cluster）是昆山杜克大学的计算集群。你可以从自己的电脑SSH连接集群，通过 Slurm 申请计算资源并运行任务。
 
 本仓库提供一份面向使用者的入门指南，以及按需使用的存储、数据恢复和权限管理 Skills。
 
-## 从使用指南开始
+## 开始
 
-**第一次使用 DKUCC，请先阅读 [《DKUCC 使用指南》](DKUCC%20使用指南.md)。**
+**建议先阅读 [《DKUCC 使用指南》](DKUCC%20使用指南.md)。**
 
-建议按这个顺序阅读：
+阅读顺序：
 
 1. **先读指南**：了解账号与官方入口、Windows / macOS 的 SSH 配置、目录规划，以及登录节点和计算节点的分工。
 2. **准备提交任务时**：阅读指南中的 Slurm 与 GPU 章节，确认自己的账号类型、可用分区、资源限制和计费安排。
 3. **遇到具体维护需求时**：再从下面选择对应的 Skill，阅读其 `SKILL.md` 和相关参考资料后操作。
 
+注意要点：
+- 登录节点用于登录、编辑、传输和提交任务。大型 CPU / GPU 计算应通过 Slurm 在计算节点上运行。
+- 先核对当前账号、路径和资源限制，再执行命令。恢复、时间戳刷新和 ACL 修改都可能改变现有状态。
+- 让 Agent 协助时，应明确目标路径、允许的操作和需要确认的步骤；优先检查与预览，再执行写入或权限变更。
 
 ## 具体 Skill
 
@@ -41,8 +45,6 @@ DKUCC（Duke Kunshan University Compute Cluster）是昆山杜克大学的计算
 ├── nfs4-acl/                     # NFSv4 ACL 授权与修复
 └── dkucc.dukekunshan.edu.cn/      # 官方网站页面的历史离线副本
 ```
-
-各 Skill 的 `SKILL.md` 说明任务范围和操作流程；`scripts/` 存放 Shell 工具，`references/` 存放补充说明、SOP 或工单模板，`agents/` 存放 Agent 的展示信息和默认提示。这些子目录并非每个 Skill 都有。
 
 ## 脚本与参考资料
 
@@ -75,12 +77,6 @@ DKUCC（Duke Kunshan University Compute Cluster）是昆山杜克大学的计算
 
 - [`dkucc-permission-audit/`](dkucc-permission-audit/) 的 `scripts/audit-natural-perms.sh` 采集身份、umask、挂载、POSIX mode 和 NFSv4 ACL，并在审计当前用户时，用临时文件验证权限继承。结果解释见 [`references/interpretation.md`](dkucc-permission-audit/references/interpretation.md)。
 - [`nfs4-acl/`](nfs4-acl/) 处理协作者授权、继承权限和 `070` 等异常。先确认现有 ACL 和目标访问范围，再按流程修改并验证；不要只根据 `ls -l` 的显示判断 NFSv4 权限
-
-## 使用前的提醒
-
-- 登录节点用于登录、编辑、传输和提交任务。大型 CPU / GPU 计算应通过 Slurm 在计算节点上运行。
-- 先核对当前账号、路径和资源限制，再执行命令。恢复、时间戳刷新和 ACL 修改都可能改变现有状态。
-- 让 Agent 协助时，应明确目标路径、允许的操作和需要确认的步骤；优先检查与预览，再执行写入或权限变更。
 
 ## 政策来源与更新范围
 
