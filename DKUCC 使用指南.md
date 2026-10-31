@@ -36,9 +36,9 @@ status: published
 1. SSH 初次进入的是登录节点，**不要在 `dkucc-login-01` 直接运行 GPU 任务或需要大量 CPU 的计算任务**。
 2. 大型计算任务应通过 Slurm 提交到计算节点，具体操作见 Section 5 和 Section 6。
 3. 登录后的目录通常是 `/dkucc/home/<NETID>`，建议存放代码、配置等小文件。大量数据、checkpoint 和输出产物应放到 `/work/<NETID>`。
-4. 原指南记录的 `/work` 清理规则为：每半个月清理时间戳旧于 75 天的文件。
+4. `/work` 清理规则为：每半个月清理时间戳旧于 75 天的文件。
 5. 不要绕过 Slurm，直接 SSH 到计算节点占用 GPU 或运行训练。
-6. 初次使用可先提交普通作业。原指南记录过 array job 的作业 ID 与子任务 ID 排查困难；使用数组作业时，应结合 `sacct` 和 `SLURM_JOB_ID` 等信息定位，这不是账号政策对数组作业的禁令。
+6. 初次使用可先提交普通作业。array job 的作业 ID 与子任务 ID 排查困难；使用数组作业时，应结合 `sacct` 和 `SLURM_JOB_ID` 等信息定位，这不是账号政策对数组作业的禁令。
 7. 作业结束后应释放所申请的资源，不要依赖残余进程继续运行；任务 `COMPLETED` 后，就算开 screen 或者 tmux 对应申请的 GPU 节点也很快会被回收。
 8. 学习账号与科研账号的 GPU 数量、月运行时间和可用分区不同。**两类账号均最多同时运行 1 个作业**，详见 Section 5。
 
@@ -84,17 +84,19 @@ DKUCC 是由登录节点、计算节点和共享存储组成的计算集群。�
 
 ### 登录入口
 
-开通账号后，使用自己的 NetID 登录。本文使用的 hostname 为 `dkucc-login-01.rc.duke.edu`。如果没有按 Section 4 配置公钥登录，需要使用账号密码认证；原指南记录其与 DKU 邮箱密码一致，如认证方式发生变化，以 IT 指引为准。
+目前 DKUCC 的 hostname 是 `dkucc-login-01.rc.duke.edu`, 我们的用户名也就是 netid .
+如果没有像 Section 4 那样配置公钥实现免密登录，每次 ssh DKUCC 都需要输入密码，密码和 DKU 邮箱的密码一致。
 
-```bash
+```
 ssh <NETID>@dkucc-login-01.rc.duke.edu
 #      ↑              ↑
 #    用户名         hostname
 ```
 
-下图为 SSH 登录 DKUCC 的示例，出现相应提示即表示登录成功。图中的 SSH 命令使用了 `.ssh/config` 中配置的别名，不必输入完整主机名；设置方法见 Section 2。
+下图是 ssh DKUCC 的样例，出现如图的状态即代表登陆成功
+图片上的 ssh 指令并没有使用完整的 hostname，这是因为配置了 `.ssh/config`，接下来的 Section 2 就会介绍。
 
-![SSH 登录成功的历史示例](DKUCC%20使用指南.assets/image-706.png)
+![](DKUCC%20使用指南.assets/image-706.png)
 
 ### DCC 培训 PDF
 
@@ -103,7 +105,7 @@ ssh <NETID>@dkucc-login-01.rc.duke.edu
 [Current pdf version of the slides（DCC 入门培训）](https://duke.app.box.com/s/zosu3w34iap7o4yuvlq44zep8ic27byq)
 
 PDF 中的 Slurm 概念、作业提交流程和常用命令仍然适用，很值得学习！
-培训材料中的主机名、资源配置和账号规则可能与 DKUCC 不同或已发生变化；连接入口和权限规则应以 DKUCC 的当前说明为准。
+只不过部分细节可能过时，例如材料里的 hostname 是 `dkucc-login-01.rc.duke.edu`，当前 DKUCC 入口则是 `dkucc-login-01.rc.duke.edu`。
 
 ---
 
@@ -111,18 +113,18 @@ PDF 中的 Slurm 概念、作业提交流程和常用命令仍然适用，很值
 
 ## 「Section 2」Windows / macOS 的 SSH 初始化
 
-本节介绍 SSH 客户端安装和连接别名设置，先使用密码登录；公钥登录配置见 Section 4。
+Section 2 这部分仅包含安装 SSH 客户端并写好连接别名，采用默认密码登录；之后需要免密登录，可以阅读 Section 4 配置公钥。
 
 ### Windows：检查 OpenSSH Client
 
-打开 PowerShell 并运行：
+打开 PowerShell运行：
 
 ```powershell
 ssh -V
 ```
 
 看到版本号，说明已经安装过，可以进行下一步。
-如果提示找不到 `ssh`，请安装 OpenSSH Client：
+如果提示找不到 `ssh` ，安装OpenSSH Client：
 Windows 11 在“设置 → 系统 → 可选功能 → 查看功能”中搜索 `OpenSSH Client`；
 Windows 10 在“设置 → 应用 → 可选功能 → 添加功能”中搜索。
 
@@ -132,7 +134,7 @@ Windows 10 在“设置 → 应用 → 可选功能 → 添加功能”中搜索
 Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
 ```
 
-安装完成后关闭并重新打开 PowerShell，再运行一次 `ssh -V`；出现版本号即表示安装成功。
+安装完成后关闭并重新打开 PowerShell，再运行一次 `ssh -V`，如果出现版本号，那么意味着下载成功。
 Windows 自带组件已经足够，不需要为了连集群额外下载不明 SSH 客户端。
 
 接着创建 SSH 配置文件：
@@ -142,7 +144,7 @@ New-Item -ItemType Directory -Force "$HOME\.ssh"
 notepad "$HOME\.ssh\config"
 ```
 
-把下面内容粘贴进去，将 `<NETID>` 换成自己的 Duke NetID。这样以后只需输入 `ssh dkucc`，不必每次手写完整主机名。这里的 `dkucc` 是自定义的连接别名，可以换成好记、便于输入的名称。
+把下面内容粘贴进去，将 `<NETID>` 换成自己的 Duke NetID。这样以后只需输入 `ssh dkucc`，不必每次手写完整主机名。这里的 dkucc 是自定义的 hostname 别称，可以换成任何你觉得好记的，输入方便的名称。
 
 ```sshconfig
 Host dkucc
@@ -161,8 +163,7 @@ chmod 700 ~/.ssh
 nano ~/.ssh/config
 ```
 
-写入配置，将 `<NETID>` 换成自己的 Duke NetID。这样以后只需输入 `ssh dkucc`，不必每次手写完整主机名。这里的 `dkucc` 是自定义的连接别名，可以换成好记、便于输入的名称：
-
+写入配置，将 `<NETID>` 换成自己的 Duke NetID。这样以后只需输入 `ssh dkucc`，不必每次手写完整主机名。这里的 dkucc 是自定义的 hostname 别称，可以换成任何你觉得好记的，输入方便的名称：
 ```sshconfig
 Host dkucc
     HostName dkucc-login-01.rc.duke.edu
@@ -183,7 +184,7 @@ chmod 600 ~/.ssh/config
 
 ### 先连接 DKU VPN
 
-从校外网络 SSH 到 DKUCC 登录节点前，**必须先连接 DKU VPN**，未连 VPN 时，本机一般无法到达 `dkucc-login-01.rc.duke.edu` 的 22 端口，表现为 `ssh: Could not resolve hostname dkucc-login-01.rc.duke.edu:` 或 `Connection timed out`。
+从校外网络 SSH 到 DKUCC 登录节点前，**必须先连接 DKU VPN**，未连 VPN 时，本机一般无法到达 `dkucc-login-01.rc.duke.edu` 的 22 端口，表现为 `ssh: Could not resolve hostname dkucc-login-01.rc.duke.edu:` 或 ` Connection timed out `。
 
 VPN 安装可参考 **[墙记｜入学指南之线上准备2！](https://mp.weixin.qq.com/s?__biz=MzkxMjczOTA4NQ==&mid=2247486055&idx=1&sn=3b54062b550949ad329987943817fea0&chksm=c1091405f67e9d136dde1c38d40b50e0791a13518b3dbc1d9bf741e0aabf2b02a1fb8bd2ec4a&cur_album_id=3994731232327254017&scene=190#rd)**，也可参考文末的 [cisco-vpn-autoconnect](https://github.com/guyong1449/cisco-vpn-autoconnect) 辅助脚本。
 确认 VPN 已连接后，再在本机执行 Section 2 中配置好的 `ssh dkucc` 或 `ssh <NETID>@dkucc-login-01.rc.duke.edu`，即可登录节点。
@@ -195,30 +196,29 @@ DKUCC 的登录 hostname 是 `dkucc-login-01.rc.duke.edu`，首次能登录后�
 ```bash
 whoami
 pwd
-df -h /dkucc/home/$USER /work/$USER # 查看文件系统磁盘空间占用
+df -h /dkucc/home/$USER /work/$USER # 查看内存占用
 sinfo -s # 查看集群分区
 ```
 
 示例输出：
 
-![首次登录自检命令的历史输出](DKUCC%20使用指南.assets/image-708.png)
+![](DKUCC%20使用指南.assets/image-708.png)
 
-登录后，所在位置通常是 `/dkucc/home/<NETID>`，也就是 Linux 的 `~` 目录。不建议在这里写入 checkpoint 或存放大量数据，以免影响登录与共享存储；请把大文件放到 `/work` 共享盘。
-
-原指南记录过 home 约 1 TB、`/work` 共享卷约 70 TB 的存储观察值，不能据此认定为当前个人配额。2026 年 10 月 16 日附件列出的 **400 TB Dell EMC Isilon 文件系统**是整体基础设施容量，也不是个人 `/work` 配额。`df -h` 显示文件系统空间，个人配额及实际可用空间应向 IT 确认。
+登录后，所在位置会在 `/dkucc/home/<NETID>`，也就是 linux 的 `~` 目录，这部分总体容量为 1 T，但是就算这样，也**极度不建议**写入 checkpoint 或者存放大量 data，可能会影响所有用户的登录与共享存储，导致网络盘卡顿等等，为了保证使用规范，请把大文件应放到 `/work` 共享盘，避免拖累整个系统。
 
 | 位置                    | 放什么                                     | 注意事项                                                                              |
 | --------------------- | --------------------------------------- | --------------------------------------------------------------------------------- |
-| `/dkucc/home/<NETID>` | 环境、`.bashrc`、小脚本、个人配置、代码和较小的日志 | 网络存储；实际配额以 IT 配置为准，不应假定可以访问其他用户的家目录 |
-| `/work/<NETID>` | 数据集、checkpoint、输出产物 | 原指南记录为 NFSv4 共享存储；文件保留规则及经管理员允许的时间戳维护方法见 Section 7 |
+| `/dkucc/home/<NETID>` | 环境、`.bashrc`、小脚本、个人配置，代码，占用不大的 log 等等产物 | 网络盘，上限 1 TB，无法访问其他用户的家目录                                                          |
+| `/work/<NETID>`       | 数据集、checkpoint、输出产物                     | 网络盘，采用 NFSv4 挂载，总共 70 TB 共享高速卷；<br>超过 75 天的文件自动清理，脚本半个月执行一次（刷新数据时间戳方案见 Section 7） |
 
-DKUCC 按个人账号使用。原指南曾观察到部分目录显示 `755`、文件显示 `600`，但这些是特定目录的历史观察，不能推广为所有用户目录的默认访问权限。是否能列出、读取或修改文件，应以目标路径的实际权限和 ACL 为准。
+DKUCC 定位是单人服务器，默认情况下可以 `ls` 查看别人的目录（755），但是无法读写或者执行文件内容（600）
+（此外，虽然看上去权限是 linux 的典型权限模型 POSIX，比如ls -l 看到的 rwxr-xr-x，但实际上生效的大概是NFS4 ACL 这一套系统，POSIX 应该是根据 ACL 合成出来的. 
+总之从严谨角度来说，不建议直接 `chmod` 给权限，容易改坏。
+具体 NFS4 ACL 编辑权限的方法，或者如果实在需要多人协作共享目录，需要合理地给目录权限，请参考文末 [DKUCC-skill](https://github.com/guyong1449/DKUCC-skill) 中的 `nfs4-acl` / `dkucc-permission-audit`）
 
-原指南还记录了 NFSv4 ACL 的使用情况：`ls -l` 显示的 POSIX 权限不一定完整体现 ACL。因此，不建议在不清楚现有 ACL 的情况下直接用 `chmod` 修改共享目录权限。需要多人协作时，请先确认授权范围，再参考 [DKUCC-skill](https://github.com/guyong1449/DKUCC-skill) 中的 `nfs4-acl` / `dkucc-permission-audit`。这些文件权限与学习／科研账号分类无关。
+DKUCC 无正式备份，但是如果文件消失了，数据文件被 75 天定时脚本删除或者自己误删了，仍有短期可能找回的方法，可以查 `bash_history` 查看有没有执行过相关 `rm` 指令，`/work` 和 `/home` 的 NFS 都存在短周期快照，可查看 `ls -la /work/$(whoami)/.snapshot/`，对比数据被删前后的快照，可以从快照 `rsync` 回来；具体步骤见 [dkucc-data-recovery](https://github.com/guyong1449/DKUCC-skill)。
 
-不要把集群存储当作有保证的备份。原指南记录过 `/work` 和 home 存储存在短周期快照，但当前是否有快照、保留多久以及能否恢复，需向 IT 确认。文件消失后，可以检查 `bash_history` 中是否有相关 `rm` 操作，并尝试查看 `ls -la /work/$(whoami)/.snapshot/`。若确有删除前的可用快照，再按权限从快照 `rsync` 恢复；步骤见 [dkucc-data-recovery](https://github.com/guyong1449/DKUCC-skill)。快照不替代站外备份。
-
-此外，`dkucc-login-01` 是登录节点，不是计算作业的运行位置。GPU 任务和需要大量 CPU 的任务都应通过 Slurm 申请计算资源，而不是直接在登录节点运行。
+此外，当前的节点名为 `dkucc-login-01`，也就是登陆节点，这里只有 CPU，如果需要执行需要 heavy calculation 的代码，请申请计算节点，**禁止在 CPU 节点执行需要 GPU 的任务，同样的，需要大量 CPU 的任务，也请申请**
 
 ---
 
@@ -226,7 +226,7 @@ DKUCC 按个人账号使用。原指南曾观察到部分目录显示 `755`、�
 
 ## 「Section 4」SSH 公钥、LDAP 与免密登录
 
-长期使用服务器时，公钥认证可以减少重复输入密码。一般服务器常使用 `~/.ssh/authorized_keys`，但原指南对 DKUCC 的实测发现：仅把公钥写入 home 下该文件并未生效，因此采用下文的 Self-Service 登记方式。以下配置与解释来自历史实测，若当前登录行为不同，请向 IT 核实。
+长期使用服务器的话每次都输出密码实在很麻烦，一般情况下直接把公钥复制到 `~/authorized_keys` 内就能免密登录，但是在 DKUCC 却无法实现这一点。
 
 ### 在本机生成密钥对
 
@@ -236,7 +236,7 @@ Windows（PowerShell）或 macOS（终端）均可：
 ssh-keygen -t ed25519 -C "<NETID>@duke.edu"
 ```
 
-按提示选择保存路径，默认生成 `~/.ssh/id_ed25519`；是否为私钥设口令可选。若该路径已有密钥，不要直接覆盖，应使用现有密钥或另选文件名。生成后确认公钥指纹：
+直接多次回车，默认生成 `~/.ssh/id_ed25519`；是否为私钥设口令可选。生成后确认公钥指纹：
 
 ```bash
 ssh-keygen -lf ~/.ssh/id_ed25519.pub
@@ -249,18 +249,14 @@ cat ~/.ssh/id_ed25519.pub
     IdentityFile ~/.ssh/id_ed25519
 ```
 
-### 原指南记录的公钥认证配置
-
-原指南在登录节点 `dkucc-login-01.rc.duke.edu` 上观察到以下配置，用于解释当时为何 home 下的 `~/.ssh/authorized_keys` 未被读取：
+DKUCC 为什么无法实现 `~/.ssh/authorized_keys` 就能免密登录呢？
+这是因为登录节点 `dkucc-login-01.rc.duke.edu` 上，公钥认证的读取顺序如下：
 
 输入以下指令：
-
 ```bash
 grep -E 'AuthorizedKeys|PubkeyAuthentication' /etc/ssh/sshd_config
 ```
-
-历史输出如下：
-
+可以看到输出如下：
 ```text
 PubkeyAuthentication yes
 AuthorizedKeysCommand /usr/local/bin/ldap-authkey.sh
@@ -322,9 +318,9 @@ AuthorizedKeysFile /var/lib/ssh/%u/authorized_keys /%u/.ssh/authorized_keys
 如何实现左侧（1）链路？
  [DKU Self-Service](https://idms-web-selfservice.oit.duke.edu/advanced)，点击 manage your ssh keys，粘贴你复制的公钥内容即可。
 
-![Duke Self-Service SSH 公钥管理页面示例](DKUCC%20使用指南.assets/image-709.png)
+![](DKUCC%20使用指南.assets/image-709.png)
 
-测试 `ssh dkucc`，能使用公钥登录即为成功。
+测试 `ssh dkucc`免密登录即为成功.
 
 ---
 
@@ -334,7 +330,7 @@ AuthorizedKeysFile /var/lib/ssh/%u/authorized_keys /%u/.ssh/authorized_keys
 
 登录节点适合编辑代码、Git 操作、轻量测试，以及 `sbatch`、`squeue`、`scancel`、`sacct` 等作业管理命令，请不要在这里跑 epoch 级训练、大规模 `torchrun`、长期压缩或模型服务。
 
-计算节点由 `sbatch` 或 `srun` 分配，用于运行训练、使用 GPU、读取大数据和写 checkpoint。目录权限操作仍需实际授权：原指南记录在 `/work` 已挂载、当前用户是目录 owner 或拥有相应 `C` 权限时，可在计算节点修改 ACL。作业提交和管理统一在登录节点完成，不依赖计算节点提供这些功能。
+计算节点由 `sbatch` 或 `srun` 分配，用于运行训练、使用 GPU、读取大数据和写 checkpoint。ACL 是一个例外：只要 `/work` 已挂载，并且当前用户是目录 owner 或拥有 `C` 权限，就可以在计算节点上修改 ACL；但不能在计算节点提交或管理新的 Slurm 作业。
 
 长时间的交互工作可以用 `tmux`，防止网络中断后 shell 消失：
 
@@ -344,9 +340,10 @@ tmux new -s main
 tmux attach -t main
 ```
 
-![登录节点与交互会话操作示例](DKUCC%20使用指南.assets/image-707.png)
+![](DKUCC%20使用指南.assets/image-707.png)
 
-原指南建议使用 Open OnDemand 上的 **code-server**，而不是在节点上自行启动 `vscode-server` 供本机 VS Code Remote-SSH 连接。历史记录的 module 为 `code-server/4.96.4`，路径为 `/opt/apps/almalinux9/code-server-4.96.4/`；当前入口和可用版本以官方页面及实际环境为准。无论使用哪种编辑器，都不要在登录节点直接运行重计算。
+官网不鼓励用本机 VS Code Remote-SSH 在 DKUCC 上直接跑代码，
+需要走正规入口：Open OnDemand 上的 **code-server**（集群已装 module `code-server/4.96.4`，路径在 `/opt/apps/almalinux9/code-server-4.96.4/`），不建议自己在节点上私自拉起 `vscode-server` 进行 ssh 连接。
 
 ### 学习账号与科研账号的 GPU 权限
 
@@ -364,7 +361,7 @@ tmux attach -t main
 
 **运行时间口径：**附件原文为 “Total GPU runtime”，并按自然月规定 1 周／4 周；未进一步说明多 GPU 作业如何汇总这一限额。因此，这里不把它擅自换算成 GPU-hours，也不把月累计额度理解成单个作业的最长运行时间。需要精确预算或长任务安排时，请向 IT 确认计量及限额规则。资源限制可按使用情况和资源可用性调整。
 
-**排队与优先级：**Common-GPU 专供学习账号，H20-GPU 专供科研账号，L20-GPU 与临时 4090 可供两类账号使用。所有分区均需排队；附件明确说明，**不会因账号类型或项目而给予调度优先权**。临时 4090 可能在暑期从教学环境释放，不保证全年可用，也没有在附件中给出固定的 Slurm 分区名。
+**排队与优先级：**Common-GPU 专供学习账号，H20-GPU 专供科研账号，L20-GPU 与临时 4090 可供两类账号使用。所有分区均需排队；附件明确说明，**不会因账号类型或项目而给予调度优先权**。临时 4090 可能在暑期从教学环境释放，不保证全年可用。
 
 ### 费用与账号有效期
 
@@ -374,7 +371,7 @@ tmux attach -t main
 | H20-GPU | ¥3.95 |
 | 临时 4090 | ¥0.47 |
 
-学习账号在规定限额内不向个人直接收费。上述科研费率按 GPU-hour 计费，与上一表中尚需 IT 明确计量细节的月运行时间额度不是同一个表述。
+学习账号在规定限额内不向个人直接收费。上述科研费率按 GPU-hour 计费。
 
 - **项目按月计费：**IT 汇总上月使用情况并向项目负责人发送账单；负责人应在收到后 5 个工作日内提出疑问。经费不足时，应在 5 个工作日内提供其他计费账号，否则 IT 可终止相关运行中或排队作业，并暂停科研账号直至欠款支付。
 - **SWRG 总额控制：**IT 按资助金额设置总使用额度；账号有效期到资助到期或额度用尽为止，以先发生者为准，不向学生发送账单。
@@ -386,8 +383,6 @@ tmux attach -t main
 sacctmgr show assoc user=$USER format=Account,Partition,QOS,MaxJobs,MaxTRES -P
 ```
 
-请读取自己当前的输出，不要照抄旧的 `faculty` 示例。Slurm 的 `Account` 名称不等于政策中的 Learning / Research 分类；仅凭名称、某一条 `MaxTRES` 或一段历史输出，不能推断全部权限、月额度或计费状态。若有多个关联或对切换状态有疑问，请让 IT 确认应使用的 Slurm account 和 QoS；只有确认后才在作业中设置相应的 `--account` 等参数。
-
 “最多同时运行 1 个作业”不是“最多提交 1 个作业”，也不代表 CPU 资源可无限使用。CPU 分区的提交限制、时间上限和可用资源应另行核对。
 
 ### 分区与 GPU 型号
@@ -398,7 +393,7 @@ sacctmgr show assoc user=$USER format=Account,Partition,QOS,MaxJobs,MaxTRES -P
 sinfo
 ```
 
-以下为历史输出示例，不表示当前节点状态：
+以下为输出示例：
 
 ```text
 PARTITION           AVAIL  TIMELIMIT  NODES  STATE NODELIST
@@ -413,7 +408,6 @@ l20-gpu                up 7-00:00:00      1  alloc dkucc-core-gpu-dkurc-a-it09-1
 h20-gpu                up 7-00:00:00      1   mix- dkucc-core-gpu-dkurc-z-it13-05
 ```
 
-以下是附件所列的三种常设 GPU 资源；具体是否可用取决于账号类型。表中的小写分区名沿用原指南的 Slurm 示例，实际名称请用 `sinfo` 核对。
 
 | Slurm 分区示例 | `--gres` 示例 | 附件所列单卡显存 | 允许的账号类型 | 常见用途 |
 | --- | --- | --- | --- | --- |
@@ -421,7 +415,7 @@ h20-gpu                up 7-00:00:00      1   mix- dkucc-core-gpu-dkurc-z-it13-0
 | `l20-gpu` | `gpu:l20:N` | L20 48 GB | 学习／科研 | 计算机视觉（检测、分割、视频理解）训练与推理 |
 | `h20-gpu` | `gpu:h20:N` | H20 141 GB | 仅科研 | 大语言模型与长上下文推理、微调及多卡并行训练 |
 
-`N` 是申请的 GPU 数量：学习账号最多为 1，科研账号最多为 4，且须符合分区限制。H20 的 141 GB 为此次附件明确列出的配置，不沿用旧稿的 96 GB。原指南还记录过 L20 的 FP8 推理用途，实际适用性取决于软件栈和模型支持。
+`N` 是申请的 GPU 数量：学习账号最多为 1，科研账号最多为 4，无论是什么账号，都只有一个申请的任务能在 GPU 节点运行。
 
 ---
 
@@ -483,7 +477,7 @@ NodeName=dkucc-core-gpu-dkurc-d-it09-3
 
 #### 3. 指定节点申请交互 shell：`srun` + `-w`
 
-**以下四卡示例仅适用于已获相应科研权限的账号**；学习账号不得照抄四卡请求。节点名来自历史记录，提交前请核对 `sinfo`，且可能排队。
+**以下四卡示例仅适用于已获相应科研权限的账号**；学习账号不得照抄四卡请求。提交前请核对 `sinfo`，且可能排队。
 
 ```bash
 srun -p l20-gpu -w dkucc-core-gpu-dkurc-a-it09-26 \
@@ -499,7 +493,7 @@ srun -p l20-gpu -w dkucc-core-gpu-dkurc-a-it09-26 \
 | `--mem=256G` | 申请 256 GB 内存 |
 | `--pty bash -i` | 分配成功后进入交互式 bash |
 
-一般不必指定 `-w`，让调度器自动选节点即可；只有在确知某台机器内存、GPU 型号或驱动满足需求、且该节点仍有空闲资源时，才考虑 `-w`。学习账号可参考本节后面的单卡调试或批处理示例；CPU、内存及时间请求也必须符合实际配置。
+一般不必指定 `-w`，让调度器自动选节点即可；只有在确知某台机器内存、GPU 型号或驱动满足需求、且该节点仍有空闲资源时，才考虑 `-w`。
 
 #### 4. 查看自己的作业队列：`squeue -u`
 
@@ -511,7 +505,7 @@ squeue -u <NETID>
 
 **含义：** 列出指定用户当前在队列中或运行中的作业。`ST` 列：`R` 运行中，`PD` 排队中，`CG` 正在结束等。`TIME` 为已运行时长；`NODELIST` 为实际运行节点。
 
-**匿名化历史输出示例：**
+**输出示例：**
 
 ```text
              JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
@@ -525,7 +519,7 @@ squeue -u <NETID>
 srun --jobid=<JOBID> --pty bash
 ```
 
-**含义：** 尝试在**仍在运行**的交互式 Slurm 作业中启动一个新的 shell；它不保证恢复原 shell 的状态。原指南曾遇到已有 shell 时新连接受限的情况，但不能据此认定所有作业都只允许一个 shell。先确认作业仍运行且有可供新 step 使用的资源；需要保持原终端状态时，应提前使用 `tmux`。
+**含义：** 网络中断或终端关闭后，重新 attach 到**仍在运行**的交互式 Slurm 作业。每个 job **只允许一个** attach 的 shell；若已有连接，需先退出旧 shell 或新开终端再连。
 
 #### 6. 取消作业：`scancel`
 
@@ -533,7 +527,7 @@ srun --jobid=<JOBID> --pty bash
 scancel <JOBID>
 ```
 
-**含义：** 取消指定作业（排队中的 pending 或正在运行的 running）。只能取消自己有权限管理的作业；涉及他人作业的问题应联系管理员。
+**含义：** 取消指定作业（排队中的 pending 或正在运行的 running）。取消自己的 job 不需要额外权限；误删他人作业需管理员介入。
 
 #### 7. 查看单个作业的详细信息：`squeue -j` + 自定义格式
 
@@ -543,20 +537,18 @@ squeue -j <JOBID> -o "%.18i %.9P %.20j %.8u %.2t %.10M %.9l %.6D %.20R"
 
 **含义：** 对单个 `JOBID` 按固定列宽输出分区、作业名、用户、状态、已运行时间、时间上限、节点数和调度原因（`REASON` / `NODELIST`）。
 
-**匿名化历史输出示例：**
+**输出示例：**
 
 ```text
              JOBID PARTITION                 NAME     USER ST       TIME TIME_LIMI  NODES     NODELIST(REASON)
              30136   l20-gpu                 bash   user_a  R 2-16:14:52 4-10:00:00      1 dkucc-core-gpu-dkurc-a-it08-22
 ```
 
-作业结束后，可用 `sacct -j <JOBID>` 查询历史信息。
+作业结束后历史信息用 `sacct -j <JOBID>` 查询
 
 ### 批处理脚本示例
 
-下面是 Slurm 批处理脚本示例，使用 1 张 L20，可作为学习账号或科研账号的起点。是否能运行还取决于剩余月额度、实际资源限制、账号配置及排队情况；请先替换所有 `<NETID>`、项目路径和环境名。
-
-先在提交前创建日志目录。Slurm 会在脚本开始前打开 `--output` 和 `--error` 指定的文件，因此不能依赖脚本内部的 `mkdir`：
+下面是 Slurm 批处理脚本示例，需要先在提交前创建日志目录，Slurm 会在脚本开始前打开 `--output` 和 `--error` 指定的文件，因此不能依赖脚本内部的 `mkdir`：
 
 ```bash
 mkdir -p /work/<NETID>/slurm/logs
@@ -616,30 +608,20 @@ else
 fi
 ```
 
-### 排队、终止与恢复排查
-
-不同分区和节点的排队情况会变化。指定节点的作业如果长期处于 `PENDING`，先查看 `NODELIST(REASON)`、所请求的资源和账号限制；必要时取消后调整请求，不必只靠反复换节点。两类账号均最多同时运行 1 个作业，**科研账号不享有按账号类型或项目划分的调度优先权**。
-
-原指南记录过后续任务排队后，前一任务约 1–2 小时收到 `Signal 9 (SIGKILL)` 的现象；这不是附件规定的固定抢占机制，也不能仅凭信号判断原因为“等待越久就抢占自己的前一个任务”。应结合 `sacct -j <JOBID>`、作业日志及 Slurm 的实际状态和原因排查，并在必要时请 IT 查看调度记录。
-
-长训练应定期保存 checkpoint，并确认月额度、作业时间上限及 2026 年 12 月 1 日切换要求。被取消或终止的作业需要按训练程序的恢复方式重新提交，不能依赖已结束作业中的残余进程。
 
 <a id="section-7"></a>
 
 ## 「Section 7」`/work` 数据保留与定期检查
 
-原指南记录的规则是：`/work` 下时间戳旧于 75 天的文件，每半个月清理一次。此次 GPU 账号附件没有重新确认该文件保留规则；请以当前存储公告或 IT 答复为准。
-
-**先备份，再维护时间戳。**下面保留原指南的时间戳维护示例，仅在管理员明确允许、且这些数据仍需保留时使用。修改时间戳不构成备份，也不保证文件不会被清理；如不允许此类保活，应停用脚本和 cron。
-
-需要更新文件时间戳时，应把范围限制在确实需要保留的目录。扫描整个 `/work/<NETID>` 会产生大量 I/O，不应直接在登录节点运行。下面的命令通过 Slurm 申请 CPU 资源，只处理 `data` 和 `outputs`：
+`/work` 下时间戳旧于 75 天的文件，会被每半个月清理一次，需要更新文件时间戳时，应把范围限制在确实需要保留的目录。扫描整个 `/work/<NETID>` 会产生大量 I/O，不应直接在登录节点运行。下面的命令通过 Slurm 申请 CPU 资源，只处理 `data` 和 `outputs`：
 
 ```bash
 srun --partition=common --time=04:00:00 --mem=2G --cpus-per-task=1 \
   bash -lc 'find /work/<NETID>/data /work/<NETID>/outputs -type f -print0 | xargs -0 -r touch'
 ```
 
-如需自动运行，可以让 cron 在每月 1 日提交一次 CPU 作业。cron 日期字段中的 `*/30` 不表示固定每 30 天。先创建日志目录和 `/work/<NETID>/slurm/touch-work.sh`：
+如需自动运行，可以让 cron 在每月 1 日提交一次 CPU 作业。
+先创建日志目录和 `/work/<NETID>/slurm/touch-work.sh`：
 
 ```bash
 mkdir -p /work/<NETID>/slurm/logs
@@ -665,7 +647,7 @@ find /work/<NETID>/data /work/<NETID>/outputs -type f -print0 2>/dev/null | xarg
 0 2 1 * * /usr/bin/sbatch /work/<NETID>/slurm/touch-work.sh >> /work/<NETID>/slurm/touch-submit.log 2>&1
 ```
 
-该表达式表示“每月 1 日 02:00”，不是严格的 30 天间隔。cron 只在登录节点提交作业，实际扫描由 Slurm 分配的 CPU 节点执行。若管理员不允许此类保活，停用 cron，以站外备份为准。
+该表达式表示“每月 1 日 02:00” 重新扫描，cron 只在登录节点提交作业，实际扫描由 Slurm 分配的 CPU 节点执行。
 
 检查最旧文件年龄：
 
@@ -680,7 +662,7 @@ srun --partition=common --time=01:00:00 --mem=2G --cpus-per-task=1 bash -lc '
 '
 ```
 
-另一套文件时间戳维护 skill 的部署示例（`~/bin/touch_work_timestamps.sh`、每月 1/15 日 cron、空间巡检 `monthly_check.sh`）可参考 [dkucc-data-ingest](https://github.com/guyong1449/DKUCC-skill)；若文件已被清理或误删，快照恢复步骤见 [dkucc-data-recovery](https://github.com/guyong1449/DKUCC-skill)。
+完整的文件时间戳维护 skill 位于（`~/bin/touch_work_timestamps.sh`、每月 1/15 日 cron 一遍。针对具体文件夹空间的 `monthly_check.sh`）可参考 [dkucc-data-ingest](https://github.com/guyong1449/DKUCC-skill)；若文件已被清理或误删，快照恢复步骤见 [dkucc-data-recovery](https://github.com/guyong1449/DKUCC-skill)。
 
 ---
 
@@ -688,10 +670,9 @@ srun --partition=common --time=01:00:00 --mem=2G --cpus-per-task=1 bash -lc '
 
 ## 官方资料
 
-本次账号与权限修订依据：
 
 - DKU IT 2026 年 10 月 23 日邮件：确定 2026 年 12 月 1 日账号转换、科研使用统计与计费，以及首轮账单安排。
-- 邮件附件《DKU Research GPU management》，日期 2026 年 10 月 16 日：账号类型、资源限制、分区、申请流程、费率与有效期。附件没有给出多 GPU 作业如何汇总月运行时间的具体算法。
+- 邮件附件《DKU Research GPU management》，日期 2026 年 10 月 16 日：账号类型、资源限制、分区、申请流程、费率与有效期。
 - [科研账号申请表](https://dukekunshan.formstack.com/forms/dku_gpu_research_account_request_form)。
 
 其他参考资料：
