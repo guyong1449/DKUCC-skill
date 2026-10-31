@@ -14,7 +14,8 @@ status: published
 
 ## 问题反馈
 
-网络、DKU VPN 或其他 DKU 账号问题，请联系 [service-desk@dukekunshan.edu.cn](mailto:service-desk@dukekunshan.edu.cn) 提交工单，可以加本人微信：18851063808，把你拉进 DKUCC 问题反馈群，这样遇到问题比邮件反馈时效性高一些。
+网络、DKU VPN 或其他 DKU 账号问题，请联系 [service-desk@dukekunshan.edu.cn](mailto:service-desk@dukekunshan.edu.cn) 提交工单;
+如果长期使用 DKUCC ，可以加本人微信：18851063808，把你拉进 DKUCC 问题反馈群，这样遇到问题比邮件反馈时效性高一些。
 
 ## 目录
 
